@@ -1,2 +1,3 @@
-# Otus-2024
-Репозиторий - Observability: мониторинг, логирование, трейсинг
+# Otus-2024 HW3
+## Observability: мониторинг, логирование, трейсинг
+1) [Установка](/docs/install-wordpress.md)
