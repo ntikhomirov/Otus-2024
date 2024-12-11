@@ -13,7 +13,7 @@ server {
         proxy_pass http://localhost:9104/metrics;  # Порт вашего MySQL экспортёра
     }
     location /blackbox {
-        proxy_pass http://localhost:9115/metrics;  # Порт вашего MySQL экспортёра
+        proxy_pass http://localhost:9115/probe;  # Порт вашего MySQL экспортёра
     }
 
     # Добавьте дополнительные локации для других экспортёров
