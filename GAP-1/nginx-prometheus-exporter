@@ -1,0 +1,20 @@
+server {
+    listen 8443 ssl;  # Порт, по которому будет доступен экспортёр
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;     # Путь к сертификату
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key; # Путь к приватному ключу
+
+    auth_basic "Protected Area";  # Это заголовок для авторизации
+    auth_basic_user_file /etc/nginx/.htpasswd;  # Путь к файлу с учетными данными
+
+    location /node {
+        proxy_pass http://localhost:9100/metrics;  # Порт вашего MySQL экспортёра
+    }
+    location /mysql {
+        proxy_pass http://localhost:9104/metrics;  # Порт вашего MySQL экспортёра
+    }
+    location /blackbox {
+        proxy_pass http://localhost:9115/metrics;  # Порт вашего MySQL экспортёра
+    }
+
+    # Добавьте дополнительные локации для других экспортёров
+}
