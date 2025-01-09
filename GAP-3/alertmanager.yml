@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.yandex.ru:587'  # Ваш SMTP сервер и порт
+  smtp_from: '****@yandex.ru'    # Адрес отправителя
+  smtp_auth_username: '****@ya.ru'      # Имя пользователя для SMTP аутентификации
+  smtp_auth_password: '****'      # Пароль для SMTP аутентификации
+  smtp_require_tls: true
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'Email'
+  routes:
+    - match:
+        severity: "warning"
+      receiver: 'Telegram'
+    - match_re:
+        severity: ^(critical|info)$
+      receiver: Email
+
+
+receivers:
+  - name: 'Email'
+    email_configs:
+      - to: '***.***@xxx.ru'
+  - name: 'Telegram'
+    telegram_configs:
+      - send_resolved: true
+        bot_token: '******'
+        chat_id: ****
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

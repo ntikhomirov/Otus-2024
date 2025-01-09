@@ -1,0 +1,73 @@
+# my global config
+global:
+  scrape_interval: 5s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - localhost:9093
+
+remote_write:
+  - url: "http://127.0.0.1:9009/api/v1/push"  # Adresse Mimir
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alertmanager_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: 'node'  # Для Node Exporter
+    static_configs:
+     - targets: ['192.168.2.9:8443']
+    metrics_path: /node
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    basic_auth:
+      username: 'prometheus'  # Имя пользователя
+      password: 'prometheus'   # Пароль
+
+  - job_name: 'mysql'  # Для MySQL Exporter (будем настраивать дальше)
+    static_configs:
+     - targets: ['192.168.2.9:8443']
+    metrics_path: /mysql
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    basic_auth:
+      username: 'prometheus'  # Имя пользователя
+      password: 'prometheus'   # Пароль
+
+  - job_name: 'blackbox' # Для Blackbox Exporter
+    metrics_path: /blackbox
+    params:
+      module: [http_2xx]  # Проверьте доступность
+    static_configs:
+      - targets:
+        - http://192.168.2.9 # Замените на ваш URL
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    basic_auth:
+      username: 'prometheus'  # Имя пользователя
+      password: 'prometheus'   # Пароль
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: 192.168.2.9:8443 # порт Blackbox Exporter

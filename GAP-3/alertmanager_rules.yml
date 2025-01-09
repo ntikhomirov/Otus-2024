@@ -1,0 +1,29 @@
+groups:
+- name: example
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 15s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} is down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+  - alert: HighCpuUsage
+    expr: 100 * (1 - avg(rate(node_cpu_seconds_total[1m]))) > 5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Высокое использование ЦП"
+      description: "Использование ЦП превышает 5% в течение 5 минут."
+
+  - alert: HighMemoryUsage
+    expr: ((node_memory_MemTotal_bytes - node_memory_MemFree_bytes) / node_memory_MemTotal_bytes) * 100 > 25
+    for: 5m
+    labels:
+      severity: info
+    annotations:
+      summary: "Высокое использование памяти"
+      description: "Использование памяти превышает 25% в течение 5 минут."
