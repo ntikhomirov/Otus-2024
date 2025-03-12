@@ -1,0 +1,9 @@
+stream
+    |from()
+        .measurement('mysql')
+        .groupBy('host')
+    |deadman(0.0, 1m)
+           .message('MySQL is down on {{ .ID }}')
+           .telegram()
+           .log('/var/log/kapacitor/db.log')
+           
