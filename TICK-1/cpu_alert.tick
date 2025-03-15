@@ -1,0 +1,11 @@
+stream
+    |from()
+        .measurement('cpu')
+        .where(lambda: "cpu" == 'cpu-total') // Общая загрузка процессора
+    |eval(lambda: "usage_user" + "usage_system") // Суммируем пользовательскую и системную нагрузку
+        .as('total_cpu_usage')
+    |alert()
+           .crit(lambda: "total_cpu_usage" > 80) // Критическое состояние
+           .message('Внимание! Нагрузка на процессор превышает 20%. Текущее значение: {{ index .Fields "total_cpu_usage" }}%')
+           .email('***') // Отправка email
+	   .log('/var/log/kapacitor/cpu.log')

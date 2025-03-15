@@ -1,0 +1,12 @@
+stream
+    |from()
+        .measurement('disk')
+        .where(lambda: "path" == '/')
+    |eval(lambda: "used_percent" )
+	.as('used_percent')
+    |alert()
+           .warn(lambda: "used_percent" > 80)
+           .message('Внимание! Занято место {{ index .Fields "used_percent" }}%')
+           .telegram()
+	   .log('/var/log/kapacitor/disk.log')
+           .stateChangesOnly()
