@@ -1,0 +1,37 @@
+heartbeat.config.monitors:
+  path: ${path.config}/monitors.d/*.yml
+  reload.enabled: false
+  reload.period: 5s
+
+heartbeat.monitors:
+- type: http
+  enabled: false
+  id: my-monitor
+  name: My Monitor
+  urls: ["https://localhost:9200"]
+  schedule: '@every 10s'
+- type: http
+  id: cms_check
+  name: CMS Availability Check
+  schedule: '@every 1m'
+  urls: ["http://192.168.2.9"]
+
+- type: tcp
+  id: db_check
+  name: DB Port Check
+  schedule: '@every 1m'
+  hosts: ["192.168.2.9:3306"]
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+setup.kibana:
+output.elasticsearch:
+  hosts: ["https://localhost:9200"]
+  preset: custom
+  username: "***"
+  password: "***"
+  ssl.verification_mode: "none"
+
+processors:
+  - add_observer_metadata:

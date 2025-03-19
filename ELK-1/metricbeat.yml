@@ -1,0 +1,41 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+metricbeat.modules:
+- module: system
+  metricsets: ["cpu", "memory", "filesystem", "network"]
+  enabled: true
+  period: 10s
+  processes: ['.*']
+
+- module: nginx
+  metricsets: ["stubstatus"]
+  hosts: ["http://127.0.0.1:8080/nginx_status"]  # Проверьте, чтобы Nginx был настроен для этого.
+  enabled: true
+
+- module: mysql
+  metricsets: ["status"]
+  hosts: ["root:***@tcp(localhost:3306)/"]
+  enabled: true
+
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+
+setup.kibana:
+
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["https://192.168.2.14:9200"]
+  preset: custom
+  username: "***"
+  password: "***"
+  ssl.verification_mode: "none"
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
