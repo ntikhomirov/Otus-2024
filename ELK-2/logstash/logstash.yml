@@ -1,0 +1,5 @@
+path.data: /var/lib/logstash
+dead_letter_queue.enable: true
+dead_letter_queue.max_bytes: 5mb
+path.dead_letter_queue: /tmp/logstash
+path.logs: /var/log/logstash
