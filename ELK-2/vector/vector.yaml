@@ -1,0 +1,34 @@
+sources:
+  filebeat_source:
+    type: "logstash"
+    address: "0.0.0.0:9000"
+    mode: "tcp"
+
+transforms:
+  parse_logs:
+    type: remap
+    inputs:
+      - filebeat_source
+    source: |
+      .pased = parse_grok!(.message, "%{IP:client_ip} - - \\[%{HTTPDATE:timestamp}\\] \"%{WORD:method} %{URIPATHPARAM:request} HTTP/%{NUMBER:http_version}\" %{NUMBER:status} %{NUMBER:body_bytes_sent} \"%{DATA:http_referer}\" \"%{DATA:http_user_agent}\"")
+  enrich_logs:
+    type: remap
+    inputs:
+      - parse_logs
+    source: |
+      .environment = "production"  # Добавляем окружение
+
+sinks:
+  elasticsearch_sink:
+    type: elasticsearch
+    inputs:
+      - parse_logs
+    endpoints: ["https://127.0.0.1:9200"]
+    auth:
+      strategy: basic
+      user: ""
+      password: ""
+    bulk:
+      index: "vector-test1-%Y.%m.%d"  # Добавлен шаблон индекса с датой
+    tls:
+      verify_certificate: false  # Проверка сертификата для HTTPS
