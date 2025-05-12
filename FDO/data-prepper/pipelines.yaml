@@ -1,0 +1,32 @@
+version: "2"
+log-pipeline:
+  source:
+    http:
+      port: 5045
+  sink:
+    - opensearch:
+        hosts: ["http://localhost:9200"]
+        index: "logstash-%{+yyyy.MM.dd}"
+        insecure: true
+        index_type: "custom"
+        action: "create"
+        username: admin
+        password: ***
+log-mysql:
+  source:
+    http:
+      port: 5046
+  processor:
+    - grok:
+        match:
+          log:
+            - '(?<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z) (?<level>\d+) (?<category>\[[^\]]+\]) (?<code>\[[^\]]+\]) (?<component>\[[^\]]+\]) (?<message>.+)'
+  sink:
+    - opensearch:
+        hosts: ["http://localhost:9200"]
+        index: "mysql-%{+yyyy.MM.dd}"
+        insecure: true
+        index_type: "custom"
+        action: "create"
+        username: admin
+        password: ***

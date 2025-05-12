@@ -1,0 +1,12 @@
+[Unit]
+Description=data-prepper
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/opt/opensearch-data-prepper-jdk-2.11.0-linux-x64/bin/data-prepper /home/nt/otus/FDO/data-prepper/pipelines.yaml /home/nt/otus/FDO/data-prepper/data-prepper-config.yaml
+[Install]
+WantedBy=multi-user.target
