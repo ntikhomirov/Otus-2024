@@ -1,0 +1,110 @@
+// Main pipeline
+pipeline {
+    //agent any
+    agent any
+
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '14', artifactNumToKeepStr: '10', daysToKeepStr: '30', numToKeepStr: '50')
+        disableConcurrentBuilds()
+        disableResume()
+        skipDefaultCheckout true
+        timeout(activity: true, time: 60)
+        parallelsAlwaysFailFast()
+    }
+
+    parameters {
+        booleanParam(name: 'DEBUG_MODE', defaultValue: false, description: 'Включение DEBUG для среды оболочки')
+        choice(name: "ms", choices: ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "loadgenerator", "paymentservice", "productcatalogservice", "recommendationservice", "shippingservice", "shoppingassistantservice"], description:  "Выбор миксросервиса")
+        string(name: "tag", defaultValue: "v1.0.0-demo", description: "Tag image")
+    }
+    stages {
+
+    //-- Шаблон сборки из ветки developer --//
+
+    stage('Prepare build scenario') {
+      steps {
+        cleanWs()
+      }
+    }
+
+    stage("Git clone"){
+       steps {
+              parallel(
+                  "MS" : {
+                      dir('ms') {
+                          git (
+                            url: 'https://github.com/ntikhomirov/k8s-otus-2024.git',
+                            branch: 'main',
+                            changelog: false,
+                            poll: false,
+                          )
+                      }
+                  }
+              )
+        }
+      }
+
+      stage('TEST'){
+          environment {
+               SSH_CRED = 'test_ssh'
+           }
+           steps {
+                  parallel(
+                    "SonarQube" : {
+                        script{
+                          echo "Должен запуститься Sonar для проверки кода"
+                        }
+                      },
+
+                      "SAST" : {
+                        script {
+                             echo "Проверка SAST"
+                          }
+                        }
+                  )
+              }
+
+        }
+
+      stage('Build') {
+          steps {
+              script {
+              sh """
+                #!/usr/bin/env bash
+                if [[ ${'$'}{DEBUG_MODE} == "true" ]]; then
+                  set -xe
+                else
+                  set -e
+                fi
+
+                cd ms/project/microservices/src/${ms}
+                docker build -t docker.nt33.ru/${ms}:${tag} .
+
+                """.stripIndent()
+              }
+          }
+      }
+
+      stage('Nexus push image') {
+            steps {
+                script {
+                sh """
+                  #!/usr/bin/env bash
+                  if [[ ${'$'}{DEBUG_MODE} == "true" ]]; then
+                    set -xe
+                  else
+                    set -e
+                  fi
+
+                  docker push docker.nt33.ru/${ms}:${tag}
+
+                  """.stripIndent()
+                }
+              }
+
+      }
+
+  }
+
+
+}

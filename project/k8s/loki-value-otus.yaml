@@ -1,0 +1,45 @@
+loki:
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+  service:
+    type: ClusterIP
+    port: 3100
+
+  config:
+    ingester:
+      # Настройки для удаления старых данных
+      lifecycler:
+        ring:
+          kvstore:
+            store: inmemory
+
+    schema_config:
+      configs:
+        - from: 2020-10-24
+          store: boltdb-shipper
+          object_store: s3
+          schema: v11
+          index:
+            prefix: loki_index_
+            period: 24h
+    storage_config:
+      aws:
+        s3: https://storage.yandexcloud.net/
+        bucketnames: "k8s-logs-otus"
+        access_key_id: 
+        secret_access_key:
+        region: "ru-central-1"
+        insecure: false  # Для использования без HTTPS, настройте соответствующим образом
+        s3forcepathstyle: true
+
+    table_manager:
+      retention_deletes_enabled: true
+      retention_period: 168h  # 7 дней
